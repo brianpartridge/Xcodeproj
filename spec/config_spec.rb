@@ -140,6 +140,22 @@ describe Xcodeproj::Config do
         'HEADER_SEARCH_PATHS = /some/path',
       ].sort
     end
+    
+    it 'does rewrite the config file if the includes have changed' do
+      filename = temporary_directory + 'Pods.xcconfig'
+
+      def filename.open(mode)
+        @writing_count ||= 0
+        @writing_count += 1
+
+        super
+      end
+
+      @config.save_as(filename)
+      @config.includes.push 'Somefile'
+      @config.save_as(filename)
+      filename.instance_variable_get(:@writing_count).should == 2
+    end
 
     it 'does not rewrite the config file if contents have not changed' do
       filename = temporary_directory + 'Pods.xcconfig'
